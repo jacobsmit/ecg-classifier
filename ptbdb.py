@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 
 # hyperparameters
-NUM_EPOCHS = 1000
+TEST_SIZE = 0.2
+NUM_EPOCHS = 5000
 HIDDEN1 = 100
 HIDDEN2 = 50
 LR = 0.001
@@ -22,7 +23,7 @@ data = np.concatenate((normal_data, abnormal_data))
 X = data[:,:-1]
 y = data[:,-1].reshape(-1, 1)
 
-X_train, X_test, y_train,y_test = train_test_split(X, y, test_size=0.15, random_state=104, shuffle=True)
+X_train, X_test, y_train,y_test = train_test_split(X, y, test_size=TEST_SIZE, random_state=104, shuffle=True)
 X_train = torch.tensor(X_train, dtype=torch.float32)
 y_train = torch.tensor(y_train, dtype=torch.float32)
 X_test = torch.tensor(X_test, dtype=torch.float32)
@@ -61,4 +62,39 @@ for epoch in range(NUM_EPOCHS) :
     optimizer.step()
     print(f'Finished epoch {epoch}, latest loss {loss}')
 
+# determine accuracy
+with torch.no_grad() :
+    model.eval()
+    y_pred = model(X_test)
+    model.train()
+y_pred = y_pred > 0.5
+print(classification_report(y_test.numpy(), y_pred.numpy()))
 
+current_index = 0
+conclusion = {0: "Normal", 1: "Abnormal"}
+
+# Create a figure and axis
+fig, ax = plt.subplots()
+plt.subplots_adjust(bottom=0.25)
+
+# Plot the initial data as a line graph
+line, = ax.plot(X_test[current_index], label=f'Array {current_index + 1}')
+ax.set_title(f'Predicted: {conclusion[y_pred[0].item()]}, Actual: {conclusion[y_test[0].item()]}')
+
+# Add a slider for scrolling through the arrays
+ax_slider = plt.axes([0.25, 0.1, 0.65, 0.03])
+slider = Slider(ax_slider, 'Array Index', 0, len(X_test) - 1, valinit=current_index, valstep=1)
+
+# Function to update the plot based on the slider value
+def update(val) :
+    index = int(slider.val)
+    line.set_ydata(X_test[index])
+    line.set_label(f'Array {index + 1}')
+    ax.set_title(f'Predicted: {conclusion[y_pred[index].item()]}, Actual: {conclusion[y_test[index].item()]}')
+    ax.legend()
+    fig.canvas.draw_idle()
+
+# Connect the slider to the update function
+slider.on_changed(update)
+
+plt.show()

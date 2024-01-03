@@ -60,9 +60,6 @@ with torch.no_grad() :
     y_pred = model(X_test)
     model.train()
 
-y_pred = torch.argmax(y_pred, dim=1)
-accuracy = (y_pred == y_test).float().mean()
-print(f"Test Accuracy: {accuracy}")
 print(classification_report(y_test.numpy(), y_pred.numpy()))
 
 current_index = 0
