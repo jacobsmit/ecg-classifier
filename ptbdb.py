@@ -26,3 +26,23 @@ X_train = torch.tensor(X_train, dtype=torch.float32)
 y_train = torch.tensor(y_train, dtype=torch.float32)
 X_test = torch.tensor(X_test, dtype=torch.float32)
 y_test = torch.tensor(y_test, dtype=torch.float32)
+
+print("initializing model...")
+class AFibClassifier(nn.Module) :
+    def __init__(self) :
+        super().__init__()
+        self.hidden1 = nn.Linear(187, 100)
+        self.act1 = nn.ReLU()
+        self.hidden2 = nn.Linear(100, 50)
+        self.act2 = nn.ReLU()
+        self.output = nn.Linear(50, 5)
+
+    def forward(self, x) :
+        x = self.act1(self.hidden1(x))
+        x = self.act2(self.hidden2(x))
+        x = self.output(x)
+        return x
+    
+model = AFibClassifier()
+loss_fn = torch.nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
