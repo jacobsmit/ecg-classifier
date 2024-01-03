@@ -6,10 +6,11 @@ from sklearn.metrics import classification_report
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 
-# constants
+# hyperparameter
 NUM_EPOCHS = 5000
 HIDDEN1 = 100
 HIDDEN2 = 50
+LR = 0.001
 
 # process data into training and test; X and y
 print("Preparing data...")
@@ -41,7 +42,7 @@ class MITBIHClassifier(nn.Module) :
 # initalize the model, loss function, and optimizer
 model = MITBIHClassifier()
 loss_fn = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=LR)
 
 # train model on training data for NUM_EPOCHS
 print("Training model...")

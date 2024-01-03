@@ -7,13 +7,14 @@ from sklearn.metrics import classification_report
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 
-# constants
-NUM_EPOCHS = 5000
+# hyperparameters
+NUM_EPOCHS = 1000
 HIDDEN1 = 100
 HIDDEN2 = 50
+LR = 0.001
 
 # generate data from csv files and split into training/testing
-print("preparing data...")
+print("Preparing data...")
 normal_data = np.genfromtxt("ptbdb_normal.csv", delimiter=",")
 abnormal_data = np.genfromtxt("ptbdb_abnormal.csv", delimiter=",")
 
@@ -27,22 +28,37 @@ y_train = torch.tensor(y_train, dtype=torch.float32)
 X_test = torch.tensor(X_test, dtype=torch.float32)
 y_test = torch.tensor(y_test, dtype=torch.float32)
 
-print("initializing model...")
-class AFibClassifier(nn.Module) :
+# define the class with layers and activation functions
+print("Initializing model...")
+class PTBDBClassifier(nn.Module) :
     def __init__(self) :
         super().__init__()
-        self.hidden1 = nn.Linear(187, 100)
+        self.hidden1 = nn.Linear(187, HIDDEN1)
         self.act1 = nn.ReLU()
-        self.hidden2 = nn.Linear(100, 50)
+        self.hidden2 = nn.Linear(HIDDEN1, HIDDEN2)
         self.act2 = nn.ReLU()
-        self.output = nn.Linear(50, 5)
+        self.output = nn.Linear(HIDDEN2, 1)
+        self.act_output = nn.Sigmoid()
 
     def forward(self, x) :
         x = self.act1(self.hidden1(x))
         x = self.act2(self.hidden2(x))
-        x = self.output(x)
+        x = self.act_output(self.output(x))
         return x
-    
-model = AFibClassifier()
-loss_fn = torch.nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+# initalize the model, loss function, and optimizer
+model = PTBDBClassifier()
+loss_fn = torch.nn.BCELoss()
+optimizer = optim.Adam(model.parameters(), lr=LR)
+
+# train model on training data for NUM_EPOCHS
+print("Training model...")
+for epoch in range(NUM_EPOCHS) :
+    y_pred = model(X_train)
+    loss = loss_fn(y_pred, y_train)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+    print(f'Finished epoch {epoch}, latest loss {loss}')
+
+
