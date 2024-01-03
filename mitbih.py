@@ -2,9 +2,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from sklearn.metrics import classification_report
 
 # number of cycles through all training data
-NUM_EPOCHS = 1000
+NUM_EPOCHS = 5000
 
 # process data into training and test; X and y
 print("Preparing data...")
@@ -49,11 +50,12 @@ for epoch in range(NUM_EPOCHS) :
     print(f'Finished epoch {epoch}, latest loss {loss}')
 
 # determine accuracy via test data
-with torch.no_grad :
+with torch.no_grad() :
     model.eval()
     y_pred = model(X_test)
     model.train()
 
 y_pred = torch.argmax(y_pred, dim=1)
 accuracy = (y_pred == y_test).float().mean()
-print(f"Test Accuracy: {accuracy_test}")
+print(f"Test Accuracy: {accuracy}")
+print(classification_report(y_test.numpy(), y_pred.numpy()))
