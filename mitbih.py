@@ -3,9 +3,13 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.metrics import classification_report
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
 
-# number of cycles through all training data
+# constants
 NUM_EPOCHS = 5000
+HIDDEN1 = 100
+HIDDEN2 = 50
 
 # process data into training and test; X and y
 print("Preparing data...")
@@ -22,11 +26,11 @@ print("Initalizing model...")
 class MITBIHClassifier(nn.Module) :
     def __init__(self) :
         super().__init__()
-        self.hidden1 = nn.Linear(187, 100)
+        self.hidden1 = nn.Linear(187, HIDDEN1)
         self.act1 = nn.ReLU()
-        self.hidden2 = nn.Linear(100, 50)
+        self.hidden2 = nn.Linear(HIDDEN1, HIDDEN2)
         self.act2 = nn.ReLU()
-        self.out = nn.Linear(50, 5)
+        self.out = nn.Linear(HIDDEN2, 5)
 
     def forward(self, x) :
         x = self.act1(self.hidden1(x))
@@ -59,3 +63,32 @@ y_pred = torch.argmax(y_pred, dim=1)
 accuracy = (y_pred == y_test).float().mean()
 print(f"Test Accuracy: {accuracy}")
 print(classification_report(y_test.numpy(), y_pred.numpy()))
+
+current_index = 0
+conclusion = {0: "Normal beat", 1: "Supraventricular premature beat", 2: "Premature ventricular contraction", 3: "Fusion of ventricular and normal beat", 4: "Unclassifiable beat"}
+
+# create a figure and axis
+fig, ax = plt.subplots()
+plt.subplots_adjust(bottom=0.25)
+
+# plot the initial data as a line graph
+line, = ax.plot(X_test[current_index], label=f'Array {current_index + 1}')
+ax.set_title(f'Predicted: {conclusion[y_pred[0].item()]}, Actual: {conclusion[y_test[0].item()]}')
+
+# add a slider for scrolling through the arrays
+ax_slider = plt.axes([0.25, 0.1, 0.65, 0.03])
+slider = Slider(ax_slider, 'Array Index', 0, len(X_test) - 1, valinit=current_index, valstep=1)
+
+# function to update the plot based on the slider value
+def update(val) :
+    index = int(slider.val)
+    line.set_ydata(X_test[index])
+    line.set_label(f'Array {index + 1}')
+    ax.set_title(f'Predicted: {conclusion[y_pred[index].item()]}, Actual: {conclusion[y_test[index].item()]}')
+    ax.legend()
+    fig.canvas.draw_idle()
+
+# connect the slider to the update function
+slider.on_changed(update)
+
+plt.show()
